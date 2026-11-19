@@ -45,7 +45,11 @@ TIM_HandleTypeDef htim2;
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
-
+// uint8_t txMessage[] = "STM32 UART AKTIF\r\n";
+uint8_t rxData;
+uint8_t rxBuffer[64];
+uint8_t rxIndex = 0;
+// uint8_t rxTag[] = "\r\n[STM32 MENERIMA] ";
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -94,6 +98,9 @@ int main(void)
   MX_TIM2_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
+  uint8_t welcomeMessage[] = "UART STM32 Siap!\r\nKetik kalimat lalu tekan Enter:\r\n> ";
+
+  HAL_UART_Transmit(&huart1, welcomeMessage, sizeof(welcomeMessage) - 1, HAL_MAX_DELAY);
 
   /* USER CODE END 2 */
 
@@ -102,14 +109,43 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, SET);
-    HAL_Delay(2000);
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, RESET);
-    HAL_Delay(2000);
+    // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, SET);
+    // HAL_Delay(2000);
+    // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, RESET);
+    // HAL_Delay(2000);
 
-    char pesan[] = "Hello world!\r\n";
-    HAL_UART_Transmit(&huart1, (uint8_t*)pesan, strlen(pesan), HAL_MAX_DELAY);
-    HAL_Delay(2000);
+    // char pesan[] = "Hello world!\r\n";
+    // HAL_UART_Transmit(&huart1, txMessage, sizeof(txMessage)-1, HAL_MAX_DELAY);
+    // HAL_Delay(2000);
+
+    if (HAL_UART_Receive(&huart1, &rxData, 1, 100) == HAL_OK)
+    {
+        if (rxData == '\r' || rxData == '\n')
+        {
+            if (rxIndex > 0)
+            {
+                rxBuffer[rxIndex] = '\0';
+
+                uint8_t pesan[] = "\r\n[STM32] Pesan diterima: \r\n";
+
+                HAL_UART_Transmit(&huart1, pesan, sizeof(pesan) - 1, HAL_MAX_DELAY);
+
+                HAL_UART_Transmit(&huart1, rxBuffer, rxIndex, HAL_MAX_DELAY);
+
+                HAL_UART_Transmit(&huart1, (uint8_t *)"\r\nKetik kalimat lain:\r\n> ", 25, HAL_MAX_DELAY);
+
+                rxIndex = 0;
+            }
+        }
+        else
+        {
+            if (rxIndex < sizeof(rxBuffer) - 1)
+            {
+                rxBuffer[rxIndex] = rxData;
+                rxIndex++;
+            }
+        }
+    }
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
