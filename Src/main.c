@@ -98,14 +98,15 @@ int main(void)
   MX_TIM2_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  uint8_t welcomeMessage[] = "UART STM32 Siap!\r\nKetik kalimat lalu tekan Enter:\r\n> ";
+  // uint8_t welcomeMessage[] = "UART STM32 Siap!\r\nKetik kalimat lalu tekan Enter:\r\n> ";
 
-  HAL_UART_Transmit(&huart1, welcomeMessage, sizeof(welcomeMessage) - 1, HAL_MAX_DELAY);
+  // HAL_UART_Transmit(&huart1, welcomeMessage, sizeof(welcomeMessage) - 1, HAL_MAX_DELAY);
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  #include <string.h>
   while (1)
   {
     /* USER CODE END WHILE */
@@ -118,33 +119,43 @@ int main(void)
     // HAL_UART_Transmit(&huart1, txMessage, sizeof(txMessage)-1, HAL_MAX_DELAY);
     // HAL_Delay(2000);
 
-    if (HAL_UART_Receive(&huart1, &rxData, 1, 100) == HAL_OK)
-    {
-        if (rxData == '\r' || rxData == '\n')
-        {
-            if (rxIndex > 0)
-            {
-                rxBuffer[rxIndex] = '\0';
+    // if (HAL_UART_Receive(&huart1, &rxData, 1, 100) == HAL_OK)
+    // {
+    //     if (rxData == '\r' || rxData == '\n')
+    //     {
+    //         if (rxIndex > 0)
+    //         {
+    //             rxBuffer[rxIndex] = '\0';
 
-                uint8_t pesan[] = "\r\n[STM32] Pesan diterima: \r\n";
+    //             uint8_t pesan[] = "\r\n[STM32] Pesan diterima: \r\n";
 
-                HAL_UART_Transmit(&huart1, pesan, sizeof(pesan) - 1, HAL_MAX_DELAY);
+    //             HAL_UART_Transmit(&huart1, pesan, sizeof(pesan) - 1, HAL_MAX_DELAY);
 
-                HAL_UART_Transmit(&huart1, rxBuffer, rxIndex, HAL_MAX_DELAY);
+    //             HAL_UART_Transmit(&huart1, rxBuffer, rxIndex, HAL_MAX_DELAY);
 
-                HAL_UART_Transmit(&huart1, (uint8_t *)"\r\nKetik kalimat lain:\r\n> ", 25, HAL_MAX_DELAY);
+    //             HAL_UART_Transmit(&huart1, (uint8_t *)"\r\nKetik kalimat lain:\r\n> ", 25, HAL_MAX_DELAY);
 
-                rxIndex = 0;
-            }
-        }
-        else
-        {
-            if (rxIndex < sizeof(rxBuffer) - 1)
-            {
-                rxBuffer[rxIndex] = rxData;
-                rxIndex++;
-            }
-        }
+    //             rxIndex = 0;
+    //         }
+    //     }
+    //     else
+    //     {
+    //         if (rxIndex < sizeof(rxBuffer) - 1)
+    //         {
+    //             rxBuffer[rxIndex] = rxData;
+    //             rxIndex++;
+    //         }
+    //     }
+    // }
+    uint8_t rx_byte;
+
+    if (HAL_UART_Receive(&huart1, &rx_byte, 1, 10) == HAL_OK){
+      if (rx_byte == ' '){
+        HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_0);
+
+        char info[] = "Spasi diterima -> LED toggle\r\n";
+        HAL_UART_Transmit(&huart1, (uint8_t *)info, strlen(info), HAL_MAX_DELAY);
+      }
     }
     /* USER CODE BEGIN 3 */
   }
